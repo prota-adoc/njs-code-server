@@ -17,33 +17,36 @@ A fully containerized Node.js development environment with PostgreSQL database, 
 ```bash
 cp .env.example .env
 ```
-
 2. Start all services with Docker Compose:
 
 ```bash
 docker compose up --build
+```
 
+3. Change owner of files
+
+```bash
 docker exec -u 0 -it node-dev chown -R coder:coder /home/coder/project
 ```
 
 
-3. Open code-server at `http://localhost:8080` (password in `.env`)
+4. Open code-server at `http://localhost:8080` (password in `.env`)
 
 
-3. Install dependencies (run in code server terminal):
+# Install dependencies (run in code server terminal):
 
 ```bash
 npm install
 ```
 
-4. Initialize the database:
+# Initialize the database:
 
 ```bash
 npm run db:push
 npm run db:seed
 ```
 
-5. Your Node app runs on `http://localhost:8080/proxy/3000/`
+# Your Node app runs on `http://localhost:8080/proxy/3001/` and `http://localhost:3001/`
 
 ## API Endpoints
 
@@ -68,7 +71,7 @@ npm run db:seed
 
 ## Services
 
-- **Node App** (port 3000): Your application server
+- **Node App** (port 3001): Your application server
 - **Code-server** (port 8080): Browser-based IDE
 - **PostgreSQL** (port 5432): Database service
 - **Redis** (port 6379): Cache and job queue service
@@ -79,16 +82,17 @@ See `.env.example` for all available options:
 - `DATABASE_URL`: PostgreSQL connection string
 - `REDIS_URL`: Redis connection string
 - `NODE_ENV`: Environment (development/production)
-- `PORT`: Application port (default: 3000)
+- `APP_PORT`: Application port (default: 3000)
 
 ## Project Structure
 
 ```
 .
-├── index.js                 # Main application entry
-├── package.json            # Dependencies and scripts
-├── docker-compose.yml      # Services configuration
-├── Dockerfile              # Node.js container image
+├── index.js               # Main application entry
+├── package.json           # Dependencies and scripts
+├── docker-compose.yml     # Services configuration
+├── entrypoint.sh          # docker start script
+├── Dockerfile             # Node.js container image
 ├── lib/
 │   ├── db.js              # Prisma database client
 │   ├── redis.js           # Redis client
@@ -102,6 +106,6 @@ See `.env.example` for all available options:
 
 1. Modify code in any editor - nodemon auto-reloads
 2. Run DB migrations: `npm run db:migrate`
-3. Check health: `curl http://localhost:3000/health`
+3. Check health: `curl http://localhost:3001/health`
 4. View Redis UI: Use CLI or GUI tools
 5. Commit code to version control
