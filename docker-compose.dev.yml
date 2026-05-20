@@ -1,4 +1,4 @@
-version: "3.8"
+
 services:
   postgres:
     image: postgres:16-alpine
@@ -33,9 +33,11 @@ services:
     restart: unless-stopped
 
   dev:
-    build: .
+    build:
+      context: .
+      target: development
     container_name: node-dev
-    env_file: .env
+    env_file: .env.dev
     ports:
       - "8080:8080"  # Za VS Code u browseru (code-server)
       - "3001:3001"  # ZA TVOJU NODE.JS APLIKACIJU
@@ -49,7 +51,6 @@ services:
       - REDIS_URL=${REDIS_URL:-redis://redis:6379}
       - NODE_ENV=${NODE_ENV:-development}
       - GITHUB_REPO=${GITHUB_REPO}
-      - GITHUB_TOKEN=${GITHUB_TOKEN}
       - GIT_USER_NAME=${GIT_USER_NAME:-}
       - GIT_USER_EMAIL=${GIT_USER_EMAIL:-}
     working_dir: /home/coder/project

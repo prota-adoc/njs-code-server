@@ -20,7 +20,7 @@ cp .env.example .env
 2. Start all services with Docker Compose:
 
 ```bash
-docker compose up --build
+docker compose -f docker-compose.dev.yml up --build
 ```
 
 3. Change owner of files
