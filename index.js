@@ -1,4 +1,6 @@
 require('dotenv').config();
+const fs = require('fs');
+const path = require('path');
 const http = require('http');
 const prisma = require('./lib/db');
 const redis = require('./lib/redis');
@@ -23,12 +25,13 @@ const server = http.createServer(async (req, res) => {
   try {
     // 1. HOME RUTA
     if (req.url === '/' && req.method === 'GET') {
+      const indexPath = path.join(__dirname, 'index.html');
+      const html = await fs.promises.readFile(indexPath, 'utf8');
+
+      res.setHeader('Content-Type', 'text/html');
       res.writeHead(200);
-      return res.end(JSON.stringify({ 
-        message: 'Hello from Docker Node with Database and Redis!',
-        timestamp: new Date().toISOString()
-      }));
-    } 
+      return res.end(html);
+    }
     
     // 2. HEALTH CHECK
     if (req.url === '/health' && req.method === 'GET') {
