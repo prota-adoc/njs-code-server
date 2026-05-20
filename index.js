@@ -18,26 +18,58 @@ const getRequestBody = (req) => {
   });
 };
 
+const publicDir = path.join(__dirname, 'public');
+const mimeTypes = {
+  '.html': 'text/html',
+  '.css': 'text/css',
+  '.js': 'application/javascript',
+  '.json': 'application/json',
+  '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.svg': 'image/svg+xml',
+  '.ico': 'image/x-icon',
+  '.txt': 'text/plain'
+};
+
+const getContentType = (filePath) => mimeTypes[path.extname(filePath).toLowerCase()] || 'application/octet-stream';
+const getRequestPath = (req) => {
+  const base = `http://${req.headers.host || 'localhost'}`;
+  const parsedUrl = new URL(req.url, base);
+  return decodeURIComponent(parsedUrl.pathname);
+};
+
+const getPublicPath = (requestPath) => {
+  let safePath = requestPath === '/' ? 'index.html' : requestPath.replace(/^\//, '');
+  safePath = path.normalize(safePath);
+  if (safePath.includes('..')) return null;
+
+  const filePath = path.join(publicDir, safePath);
+  return filePath.startsWith(publicDir) ? filePath : null;
+};
+
 const server = http.createServer(async (req, res) => {
   // Postavljanje podrazumevanog zaglavlja za sve odgovore
   res.setHeader('Content-Type', 'application/json');
   
   try {
+    const requestPath = getRequestPath(req);
+
     // 1. HOME RUTA
-    if (req.url === '/' && req.method === 'GET') {
-      const indexPath = path.join(__dirname, 'index.html');
+    if (requestPath === '/' && req.method === 'GET') {
+      const indexPath = getPublicPath('/');
       const html = await fs.promises.readFile(indexPath, 'utf8');
 
       res.setHeader('Content-Type', 'text/html');
       res.writeHead(200);
       return res.end(html);
     }
-    
+
     // 2. HEALTH CHECK
-    if (req.url === '/health' && req.method === 'GET') {
+    if (requestPath === '/health' && req.method === 'GET') {
       const dbCheck = await prisma.$queryRaw`SELECT 1`;
       const redisCheck = await redis.ping(); // Vraća "PONG" ako radi
-      
+
       res.writeHead(200);
       return res.end(JSON.stringify({
         status: 'healthy',
@@ -45,25 +77,25 @@ const server = http.createServer(async (req, res) => {
         redis: redisCheck === 'PONG' ? 'connected' : 'disconnected'
       }));
     }
-    
+
     // 3. GET TASKS
-    if (req.url === '/tasks' && req.method === 'GET') {
+    if (requestPath === '/tasks' && req.method === 'GET') {
       const tasks = await prisma.task.findMany();
       res.writeHead(200);
       return res.end(JSON.stringify({ tasks }));
     }
-    
+
     // 4. POST TASK (Sada potpuno bezbedan)
-    if (req.url === '/tasks' && req.method === 'POST') {
+    if (requestPath === '/tasks' && req.method === 'POST') {
       const body = await getRequestBody(req);
-      
+
       if (!body) {
         res.writeHead(400);
         return res.end(JSON.stringify({ error: 'Missing request body' }));
       }
 
       const { title } = JSON.parse(body);
-      
+
       if (!title) {
         res.writeHead(400);
         return res.end(JSON.stringify({ error: 'Title is required' }));
@@ -72,20 +104,20 @@ const server = http.createServer(async (req, res) => {
       const task = await prisma.task.create({
         data: { title }
       });
-      
+
       // Keš i pozadinski posao
       await redis.del('tasks:all');
       await addJob('process-task', { taskId: task.id });
-      
+
       res.writeHead(201);
       return res.end(JSON.stringify({ task }));
     }
-    
+
     // 5. CACHE EXAMPLE
-    if (req.url === '/cache-example' && req.method === 'GET') {
+    if (requestPath === '/cache-example' && req.method === 'GET') {
       const cacheKey = 'example:data';
       const cached = await redis.get(cacheKey);
-      
+
       if (cached) {
         res.writeHead(200);
         return res.end(JSON.stringify({ 
@@ -95,7 +127,7 @@ const server = http.createServer(async (req, res) => {
       } else {
         const data = { value: Math.random(), timestamp: Date.now() };
         await redis.setEx(cacheKey, 3600, JSON.stringify(data));
-        
+
         res.writeHead(200);
         return res.end(JSON.stringify({ 
           message: 'From computation, now cached',
@@ -103,8 +135,22 @@ const server = http.createServer(async (req, res) => {
         }));
       }
     }
-    
-    // 6. NOT FOUND
+
+    // 6. Static public file fallback
+    if (req.method === 'GET') {
+      const publicPath = getPublicPath(requestPath);
+      if (publicPath) {
+        try {
+          const file = await fs.promises.readFile(publicPath);
+          res.setHeader('Content-Type', getContentType(publicPath));
+          res.writeHead(200);
+          return res.end(file);
+        } catch (err) {
+          if (err.code !== 'ENOENT') throw err;
+        }
+      }
+    }
+
     res.writeHead(404);
     res.end(JSON.stringify({ error: 'Not found' }));
 
