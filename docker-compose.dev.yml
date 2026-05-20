@@ -37,7 +37,7 @@ services:
       context: .
       target: development
     container_name: node-dev
-    env_file: .env.dev
+    env_file: .env
     ports:
       - "8080:8080"  # Za VS Code u browseru (code-server)
       - "3001:3001"  # ZA TVOJU NODE.JS APLIKACIJU
