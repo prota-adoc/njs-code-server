@@ -1,0 +1,26 @@
+{
+  "name": "dockernjs-workspace",
+  "version": "0.0.1",
+  "private": true,
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon --watch . index.js",
+    "db:migrate": "prisma migrate dev",
+    "db:push": "prisma db push",
+    "db:seed": "node prisma/seed.js"
+  },
+  "dependencies": {
+    "@prisma/client": "5.22.0",
+    "bullmq": "^5.76.10",
+    "dotenv": "^17.4.2",
+    "ioredis": "^5.10.1",
+    "redis": "^5.12.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14",
+    "prisma": "5.22.0"
+  }
+}
