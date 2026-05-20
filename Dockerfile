@@ -7,15 +7,20 @@ RUN apt-get update \
 
 RUN curl -fsSL https://code-server.dev/install.sh | sh
 
-# Create a user to avoid running as root
-RUN useradd -m coder
+# Prvo kopiramo entrypoint dok smo još uvek ROOT korisnik
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
+# Kreiranje korisnika i postavljanje prava unutar home direktorijuma
+RUN useradd -m -s /bin/bash coder
 WORKDIR /home/coder/project
 RUN chown -R coder:coder /home/coder
 
+# Tek sada prelazimo na ne-privilegovanog korisnika
 USER coder
 ENV HOME=/home/coder
 
-EXPOSE 8080
+EXPOSE 3000
 
-# Apply git identity from env vars if provided, then start code-server
-CMD ["sh", "-c", "if [ -n \"$GIT_USER_NAME\" ]; then git config --global user.name \"$GIT_USER_NAME\"; fi; if [ -n \"$GIT_USER_EMAIL\" ]; then git config --global user.email \"$GIT_USER_EMAIL\"; fi; exec code-server --bind-addr '0.0.0.0:8080' --auth 'password' ."]
+# Pozivamo entrypoint sa sigurne lokacije koja se ne preklapa sa volumenom
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

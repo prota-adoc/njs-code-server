@@ -12,7 +12,13 @@ A fully containerized Node.js development environment with PostgreSQL database, 
 
 ## Quick Start
 
-1. Start all services with Docker Compose:
+1. Copy `.env.example` to `.env` so Docker Compose can load the environment variables:
+
+```bash
+cp .env.example .env
+```
+
+2. Start all services with Docker Compose:
 
 ```bash
 docker compose up --build
@@ -21,7 +27,7 @@ docker exec -u 0 -it node-dev chown -R coder:coder /home/coder/project
 ```
 
 
-2. Open code-server at `http://localhost:8080` (password in `.env`)
+3. Open code-server at `http://localhost:8080` (password in `.env`)
 
 
 3. Install dependencies (run in code server terminal):

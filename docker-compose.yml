@@ -35,8 +35,9 @@ services:
   dev:
     build: .
     container_name: node-dev
+    env_file: .env
     ports:
-      - "8080:8080"
+      - "8080:3000"
     volumes:
       - ./:/home/coder/project:cached
       - /home/coder/project/node_modules
