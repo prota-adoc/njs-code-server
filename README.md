@@ -32,6 +32,11 @@ docker exec -u 0 -it node-dev chown -R coder:coder /home/coder/project
 
 4. Open code-server at `http://localhost:8080` (password in `.env`)
 
+or make it visible from net
+
+```bash
+cloudflared tunnel --url localhost:8080
+```
 
 # Install dependencies (run in code server terminal):
 
