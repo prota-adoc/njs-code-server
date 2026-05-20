@@ -4,8 +4,8 @@ const prisma = require('./lib/db');
 const redis = require('./lib/redis');
 const { addJob } = require('./lib/jobs');
 
-const port = process.env.PORT || 3000;
-
+const port = process.env.APP_PORT || 3001;
+console.log(`.env port ${port}`);
 // Pomoćna funkcija za asinhrono čitanje tela zahteva
 const getRequestBody = (req) => {
   return new Promise((resolve, reject) => {

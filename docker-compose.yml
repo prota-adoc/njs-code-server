@@ -37,15 +37,17 @@ services:
     container_name: node-dev
     env_file: .env
     ports:
-      - "8080:3000"
+      - "8080:8080"  # Za VS Code u browseru (code-server)
+      - "3001:3001"  # ZA TVOJU NODE.JS APLIKACIJU
     volumes:
       - ./:/home/coder/project:cached
       - /home/coder/project/node_modules
     environment:
       - PASSWORD=${PASSWORD:-devpassword}
+      - APP_PORT=${APP_PORT:-3001}
       - DATABASE_URL=postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-postgres}@postgres:5432/${DB_NAME:-devdb}
       - REDIS_URL=${REDIS_URL:-redis://redis:6379}
-      - NODE_ENV=development
+      - NODE_ENV=${NODE_ENV:-development}
       - GITHUB_REPO=${GITHUB_REPO}
       - GITHUB_TOKEN=${GITHUB_TOKEN}
       - GIT_USER_NAME=${GIT_USER_NAME:-}

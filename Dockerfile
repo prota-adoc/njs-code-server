@@ -20,7 +20,7 @@ RUN chown -R coder:coder /home/coder
 USER coder
 ENV HOME=/home/coder
 
-EXPOSE 3000
+EXPOSE 8080
 
 # Pozivamo entrypoint sa sigurne lokacije koja se ne preklapa sa volumenom
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
